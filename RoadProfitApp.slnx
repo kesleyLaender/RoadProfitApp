@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="RoadProfitApp.Console/RoadProfitApp.Console.csproj" />
+  <Project Path="RoadProfitApp.Tests/RoadProfitApp.Tests.csproj" />
+</Solution>
