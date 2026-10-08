@@ -15,11 +15,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="Xunit" />
+    <ProjectReference Include="..\RoadProfitApp.CLI\RoadProfitApp.CLI.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RoadProfitApp.Console\RoadProfitApp.Console.csproj" />
+    <Using Include="Xunit" />
   </ItemGroup>
 
 </Project>

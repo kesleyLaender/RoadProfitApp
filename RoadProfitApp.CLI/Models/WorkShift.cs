@@ -1,5 +1,7 @@
-﻿namespace RoadProfitApp.Console.Models;
-using System;
+﻿using System;
+using RoadProfitApp;
+
+namespace RoadProfitApp.CLI.Models;
 
 public class WorkShift
 {
@@ -28,7 +30,7 @@ public class WorkShift
         DateTime? currentDate = null,
         Guid? id = null )
     {
-        var today = currentDate ?? DateTime.Today;
+        var today = (currentDate ?? DateTime.Today).Date;
 
         if (endOdometer <= startOdometer)
             throw new ArgumentException("Odômetro final deve ser maior que o inicial", nameof(endOdometer));
@@ -39,7 +41,7 @@ public class WorkShift
         if (endTime <= startTime)
             throw new ArgumentException("A hora final deve ser maior que a inicial.", nameof(endTime));
 
-        if (date > today)
+        if (date.Date > today)
             throw new ArgumentException("A data do registro não pode ser futura", nameof(date));
 
         Id = id ?? Guid.NewGuid();

@@ -1,7 +1,7 @@
-﻿namespace RoadProfitApp.Tests;
-
-using RoadProfitApp.Console.Models;
+﻿using RoadProfitApp.CLI.Models;
 using Xunit;
+
+namespace RoadProfitApp.Tests;
 
 public class WorkShiftTests
 {
