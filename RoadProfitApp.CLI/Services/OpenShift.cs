@@ -5,21 +5,20 @@ namespace RoadProfitApp.CLI.Services;
 
 public partial class ShiftServices
 {
-    public static void OpenShift()
+    private readonly string _shiftFilePath;
+    public ShiftServices()
     {
         string baseDirectory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         string dataFolder = Path.Combine(baseDirectory, "RoadProfitData");
-        string path = Path.Combine(dataFolder, "opened_shift.json");
-
-        if (File.Exists(path))
+        Directory.CreateDirectory(dataFolder);
+        _shiftFilePath = Path.Combine(dataFolder, "opened_shift.json");
+    }
+    public void OpenShift()
+    {
+        if (File.Exists(_shiftFilePath))
         {
             Console.WriteLine("\nJá existe um turno aberto, operação cancelada.");
             return;
-        }
-
-        if (!Directory.Exists(dataFolder))
-        {
-            Directory.CreateDirectory(dataFolder);
         }
 
         var now = DateTime.Now;
@@ -50,13 +49,12 @@ public partial class ShiftServices
         {
                 var openedShift = new
                 {
-                    date = now.ToString("yyyy-MM-dd"),
-                    startOdometer = startOdometer,
-                    startTime = now.ToString("HH:mm:ss")
+                    dateTime = now,
+                    startOdometer = startOdometer
                 };
 
                 string jsonString = JsonSerializer.Serialize(openedShift);
-                File.WriteAllText(path, jsonString);
+                File.WriteAllText(_shiftFilePath, jsonString);
 
                 Console.WriteLine("Inicio da jornada registrado com sucesso!");
 

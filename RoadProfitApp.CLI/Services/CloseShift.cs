@@ -1,28 +1,21 @@
 ﻿using RoadProfitApp.CLI.Models;
 using System;
-using System.Globalization;
-using System.Security.Cryptography.X509Certificates;
+using static System.Globalization.CultureInfo;
 using System.Text.Json;
+using System.Runtime.CompilerServices;
 namespace RoadProfitApp.CLI.Services;
 
 public partial class ShiftServices
 {
-    public static void CloseShift()
+    public void CloseShift()
     {
-        var inv = CultureInfo.InvariantCulture;
-        var ptbr = new CultureInfo("pt-BR");
-
-        string baseDirectory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        string dataFolder = Path.Combine(baseDirectory, "RoadProfitData");
-        string path = Path.Combine(dataFolder, "opened_shift.json");
-
-        if (!File.Exists(path))
+        if (!File.Exists(_shiftFilePath))
         {
             Console.WriteLine("Não há turno em aberto. Operação cancelada");
             return;
         }
 
-        string jsonString = File.ReadAllText(path);
+        string jsonString = File.ReadAllText(_shiftFilePath);
         var openedShift = JsonSerializer.Deserialize<OpenedShift>(jsonString);
         var now = DateTime.Now;
         int endOdometer = 0;
@@ -45,21 +38,21 @@ public partial class ShiftServices
             Console.Write("\nInforme o faturamento: ");
             string? revenueInputed = Console.ReadLine();
 
-            if(!string.IsNullOrEmpty(revenueInputed) && decimal.TryParse(revenueInputed, inv, out revenue) && revenue > 0)
+            if(!string.IsNullOrEmpty(revenueInputed) && decimal.TryParse(revenueInputed, InvariantCulture, out revenue) && revenue > 0)
             {
                 break;
             }
             Console.WriteLine("Valor inválido! Formato esperado: 150.00");
         }
 
-        WorkShift shift = new(date: openedShift.date,
-                                  startTime: openedShift.startTime,
-                                  endTime: now,
+        WorkShift shift = new(startDateTime: openedShift!.startDateTime,
+                                  endDateTime: now,
                                   startOdometer: openedShift.startOdometer,
                                   endOdometer: endOdometer,
                                   revenue: revenue);
 
 
+        string filePath = Path.Combine(dataFolder, "shifts.csv");
     }
-    public record OpenedShift(DateTime date, int startOdometer, DateTime startTime);
+    public record OpenedShift(DateTime startDateTime, int startOdometer);
 }
