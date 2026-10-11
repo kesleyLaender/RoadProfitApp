@@ -21,6 +21,10 @@ public class Program
             case "1":
                 ShiftServices.OpenShift();
                 return;
+
+            case "2":
+                ShiftServices.CloseShift();
+                return;
         }
 
 

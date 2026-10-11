@@ -2,20 +2,20 @@
 using System;
 using static System.Globalization.CultureInfo;
 using System.Text.Json;
-using System.Runtime.CompilerServices;
+using static System.FormattableString;
 namespace RoadProfitApp.CLI.Services;
 
 public partial class ShiftServices
 {
-    public void CloseShift()
+    public static void CloseShift()
     {
-        if (!File.Exists(_shiftFilePath))
+        if (!File.Exists(_jsonFilePath))
         {
             Console.WriteLine("Não há turno em aberto. Operação cancelada");
             return;
         }
 
-        string jsonString = File.ReadAllText(_shiftFilePath);
+        string jsonString = File.ReadAllText(_jsonFilePath);
         var openedShift = JsonSerializer.Deserialize<OpenedShift>(jsonString);
         var now = DateTime.Now;
         int endOdometer = 0;
@@ -38,7 +38,9 @@ public partial class ShiftServices
             Console.Write("\nInforme o faturamento: ");
             string? revenueInputed = Console.ReadLine();
 
-            if(!string.IsNullOrEmpty(revenueInputed) && decimal.TryParse(revenueInputed, InvariantCulture, out revenue) && revenue > 0)
+            if(!string.IsNullOrEmpty(revenueInputed) && 
+                decimal.TryParse(revenueInputed, InvariantCulture, out revenue) &&
+                revenue > 0)
             {
                 break;
             }
@@ -52,7 +54,24 @@ public partial class ShiftServices
                                   revenue: revenue);
 
 
-        string filePath = Path.Combine(dataFolder, "shifts.csv");
+        string filePath = Path.Combine(_dataFolder, "shifts.csv");
+         
+        if (!File.Exists(filePath))
+        {
+            string csvHeader = $"StartDateTime,EndDateTime,StartOdometer,EndOdometer,Revenue" + Environment.NewLine;
+            File.WriteAllText(filePath, csvHeader);
+        }
+        string csvLine = Invariant(
+            $"{shift.StartDateTime},{shift.EndDateTime},{shift.StartOdometer},{endOdometer},{revenue}") + Environment.NewLine;
+
+        File.AppendAllText(filePath, csvLine);
+        Console.WriteLine("Jornada salva com sucesso.");
+
+        File.Delete(_jsonFilePath);
+        Console.WriteLine("opened_shift.json deletado com sucesso.");
+        
+        return;
+
     }
     public record OpenedShift(DateTime startDateTime, int startOdometer);
 }
