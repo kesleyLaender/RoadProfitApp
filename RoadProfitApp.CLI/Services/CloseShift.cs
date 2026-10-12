@@ -14,19 +14,46 @@ public partial class ShiftServices
             Console.WriteLine("Não há turno em aberto. Operação cancelada");
             return;
         }
-
-        string jsonString = File.ReadAllText(_jsonFilePath);
-        var openedShift = JsonSerializer.Deserialize<OpenedShift>(jsonString);
         var now = DateTime.Now;
-        int endOdometer = 0;
-        decimal revenue = 0m;
+        string jsonString = string.Empty;
+        OpenedShift? openedShift = null;
+        try
+        {
+            jsonString = File.ReadAllText(_jsonFilePath);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Erro]{ex.Message}");
+            Console.WriteLine("Intervenção manual necessaria.");
+            Console.WriteLine($"Registro da falha: {now}");
+            return;
+        }
+        try
+        { 
+            openedShift = JsonSerializer.Deserialize<OpenedShift>(jsonString);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERRO]{ex.Message}");
+            Console.WriteLine("Registro manual necessario, segue dados capturados: ");
+            Console.WriteLine(jsonString);
+            Console.WriteLine($"Resgistro da falha: {now}");
+            Console.WriteLine("==========================================");
+            Console.WriteLine("[CONFIRA O ARQUIVO MANUALMENTE E EXCLUA!!] ");
+            return;
+        }
+
+        int endOdometer;
+        decimal revenue;
 
         while (true)
         {
             Console.Write("\nInforme o odômetro atual: ");
             string? odometerInputed = Console.ReadLine();
 
-            if (!string.IsNullOrEmpty(odometerInputed) && int.TryParse(odometerInputed, out endOdometer) && endOdometer > 0)
+            if (!string.IsNullOrEmpty(odometerInputed) &&
+                int.TryParse(odometerInputed, out endOdometer) &&
+                endOdometer > 0)
             {
                 break;
             }
@@ -47,25 +74,52 @@ public partial class ShiftServices
             Console.WriteLine("Valor inválido! Formato esperado: 150.00");
         }
 
-        WorkShift shift = new(startDateTime: openedShift!.startDateTime,
+        WorkShift shift = new(startDateTime: openedShift!.StartDateTime,
                                   endDateTime: now,
-                                  startOdometer: openedShift.startOdometer,
+                                  startOdometer: openedShift.StartOdometer,
                                   endOdometer: endOdometer,
                                   revenue: revenue);
 
 
-        string filePath = Path.Combine(_dataFolder, "shifts.csv");
-         
-        if (!File.Exists(filePath))
+        if (!File.Exists(_shiftsRepoPath))
         {
+
             string csvHeader = $"StartDateTime,EndDateTime,StartOdometer,EndOdometer,Revenue" + Environment.NewLine;
-            File.WriteAllText(filePath, csvHeader);
+            File.WriteAllText(_shiftsRepoPath, csvHeader);
+
         }
+        
         string csvLine = Invariant(
             $"{shift.StartDateTime},{shift.EndDateTime},{shift.StartOdometer},{endOdometer},{revenue}") + Environment.NewLine;
 
-        File.AppendAllText(filePath, csvLine);
+        try
+        {
+            File.AppendAllText(_shiftsRepoPath, csvLine);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERRO]{ex.Message}");
+            Console.WriteLine("Os dados não salvos a seguir(anote): ");
+            Console.WriteLine(csvLine);
+            Console.WriteLine("====================================");
+            Console.WriteLine("APÓS O REGISTRO EXCLUA O ARQUIVO TEMP");
+            return;
+        }
+
         Console.WriteLine("Jornada salva com sucesso.");
+
+        try
+        {
+            var appStateAt = new AppState(shift.EndOdometer, now);
+            string appStateJson = JsonSerializer.Serialize<AppState>(appStateAt);
+            File.WriteAllText(_appStatePath, appStateJson);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Aviso] Não foi possivel atualizar last_odometer.json. {ex.Message}");
+        }
+
+        Console.WriteLine("last_odometer.json atualizado com sucesso");
 
         File.Delete(_jsonFilePath);
         Console.WriteLine("opened_shift.json deletado com sucesso.");
@@ -73,5 +127,6 @@ public partial class ShiftServices
         return;
 
     }
-    public record OpenedShift(DateTime startDateTime, int startOdometer);
+    public record OpenedShift(DateTime StartDateTime, int StartOdometer);
+    public record AppState(int Odometer, DateTime DateTime);
 }

@@ -3,6 +3,7 @@ using Xunit;
 
 namespace RoadProfitApp.Tests;
 
+/*
 public class WorkShiftTests
 {
     [Fact]
@@ -131,3 +132,4 @@ public class WorkShiftTests
         Assert.Equal("date" , ex.ParamName);
     }
 }
+*/

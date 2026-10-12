@@ -34,10 +34,10 @@ public class WorkShift
             throw new ArgumentException("Odômetro final deve ser maior que o inicial", nameof(endOdometer));
 
         if (endDateTime <= startDateTime)
-            throw new ArgumentException("A hora final deve ser maior que a inicial.", nameof(endTime));
+            throw new ArgumentException("A hora final deve ser maior que a inicial.", nameof(endDateTime));
 
         if (startDateTime > today)
-            throw new ArgumentException("A data do registro não pode ser futura", nameof(date));
+            throw new ArgumentException("A data do registro não pode ser futura", nameof(startDateTime));
 
         Id = id ?? Guid.NewGuid();
         StartDateTime = startDateTime;
