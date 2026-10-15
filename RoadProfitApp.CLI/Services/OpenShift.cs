@@ -5,30 +5,24 @@ namespace RoadProfitApp.CLI.Services;
 
 public partial class ShiftServices
 {
-    private static readonly string _baseDirectory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-    private static readonly string _dataFolderPath = Path.Combine(_baseDirectory, "RoadProfitData");
-    private static readonly string _jsonFilePath = Path.Combine(_dataFolderPath, "opened_shift.json");
-    private static readonly string _appStatePath = Path.Combine(_dataFolderPath, "app_state.json");
-    private static readonly string _shiftsRepoPath = Path.Combine(_dataFolderPath, "shifts.csv");
-
     static ShiftServices()
     {
-            Directory.CreateDirectory(_dataFolderPath);
+            Directory.CreateDirectory(FilePaths.DataFolderPath);
     }
 
     public static void OpenShift()
     {
-        if (File.Exists(_jsonFilePath))
+        if (File.Exists(FilePaths.OpenedShiftPath))
         {
             Console.WriteLine("\nJá existe um turno aberto, operação cancelada.");
             return;
         }
         AppState? appState = null;
-        if(File.Exists(_appStatePath))
+        if(File.Exists(FilePaths.AppStatePath))
         {
             try
             {
-                string json = File.ReadAllText(_appStatePath);
+                string json = File.ReadAllText(FilePaths.AppStatePath);
                 appState = JsonSerializer.Deserialize<AppState>(json);
             }
             catch (Exception ex)
@@ -76,7 +70,7 @@ public partial class ShiftServices
             try
             { 
                 jsonString = JsonSerializer.Serialize(openedShift);
-                File.WriteAllText(_jsonFilePath, jsonString);
+                File.WriteAllText(FilePaths.OpenedShiftPath, jsonString);
 
             }
             catch (Exception ex)
@@ -92,7 +86,7 @@ public partial class ShiftServices
             {
                 var appStateAt = new AppState(openedShift.StartOdometer, now);
                 string appStateJson = JsonSerializer.Serialize(appStateAt);
-                File.WriteAllText(_appStatePath, appStateJson);
+                File.WriteAllText(FilePaths.AppStatePath, appStateJson);
             }
             catch (Exception ex)
             {

@@ -9,7 +9,7 @@ public partial class ShiftServices
 {
     public static void CloseShift()
     {
-        if (!File.Exists(_jsonFilePath))
+        if (!File.Exists(FilePaths.OpenedShiftPath))
         {
             Console.WriteLine("Não há turno em aberto. Operação cancelada");
             return;
@@ -19,7 +19,7 @@ public partial class ShiftServices
         OpenedShift? openedShift = null;
         try
         {
-            jsonString = File.ReadAllText(_jsonFilePath);
+            jsonString = File.ReadAllText(FilePaths.OpenedShiftPath);
         }
         catch (Exception ex)
         {
@@ -81,11 +81,11 @@ public partial class ShiftServices
                                   revenue: revenue);
 
 
-        if (!File.Exists(_shiftsRepoPath))
+        if (!File.Exists(FilePaths.ShiftsRepoPath))
         {
 
             string csvHeader = $"StartDateTime,EndDateTime,StartOdometer,EndOdometer,Revenue" + Environment.NewLine;
-            File.WriteAllText(_shiftsRepoPath, csvHeader);
+            File.WriteAllText(FilePaths.ShiftsRepoPath, csvHeader);
 
         }
         
@@ -94,7 +94,7 @@ public partial class ShiftServices
 
         try
         {
-            File.AppendAllText(_shiftsRepoPath, csvLine);
+            File.AppendAllText(FilePaths.ShiftsRepoPath, csvLine);
         }
         catch (Exception ex)
         {
@@ -112,7 +112,7 @@ public partial class ShiftServices
         {
             var appStateAt = new AppState(shift.EndOdometer, now);
             string appStateJson = JsonSerializer.Serialize<AppState>(appStateAt);
-            File.WriteAllText(_appStatePath, appStateJson);
+            File.WriteAllText(FilePaths.AppStatePath, appStateJson);
         }
         catch (Exception ex)
         {
@@ -121,7 +121,7 @@ public partial class ShiftServices
 
         Console.WriteLine("last_odometer.json atualizado com sucesso");
 
-        File.Delete(_jsonFilePath);
+        File.Delete(FilePaths.OpenedShiftPath);
         Console.WriteLine("opened_shift.json deletado com sucesso.");
         
         return;
