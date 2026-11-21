@@ -12,6 +12,9 @@ public class LocalStorage(FileLogger logger)
 
     public bool HasActiveShift() 
         => File.Exists(AppPaths.ActiveShiftPath);
+    
+    public bool HasAppState()
+        => File.Exists(AppPaths.AppStatePath)
 
     public Result<AppState> GetState()
         => LoadJson<AppState>(AppPaths.AppStatePath);
@@ -32,10 +35,6 @@ public class LocalStorage(FileLogger logger)
         string jsonString = string.Empty;
         try
         {
-            if (!File.Exists(path))
-                return Result.Fail(
-                    Operational($"Arquivo {path} não encontrado"));
-
             jsonString = File.ReadAllText(path);
             T? obj = JsonSerializer.Deserialize<T>(jsonString);
 
