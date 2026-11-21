@@ -1,15 +1,12 @@
-﻿using RoadProfitApp.CLI.Models;
-using System;
-using static System.Globalization.CultureInfo;
-using System.Text.Json;
-using static System.FormattableString;
-namespace RoadProfitApp.CLI.Services;
-
+﻿using RoadProfitApp.CLI.Domain;
+using RoadProfitApp.CLI.Infrastructure;
+   namespace RoadProfitApp.CLI.Application;
+/*
 public partial class ShiftServices
 {
     public static void CloseShift()
     {
-        if (!File.Exists(FilePaths.OpenedShiftPath))
+        if (!File.Exists(LocalStorage.OpenedShiftPath))
         {
             Console.WriteLine("Não há turno em aberto. Operação cancelada");
             return;
@@ -19,7 +16,7 @@ public partial class ShiftServices
         OpenedShift? openedShift = null;
         try
         {
-            jsonString = File.ReadAllText(FilePaths.OpenedShiftPath);
+            jsonString = File.ReadAllText(LocalStorage.OpenedShiftPath);
         }
         catch (Exception ex)
         {
@@ -81,11 +78,11 @@ public partial class ShiftServices
                                   revenue: revenue);
 
 
-        if (!File.Exists(FilePaths.ShiftsRepoPath))
+        if (!File.Exists(LocalStorage.ShiftsRepoPath))
         {
 
             string csvHeader = $"StartDateTime,EndDateTime,StartOdometer,EndOdometer,Revenue" + Environment.NewLine;
-            File.WriteAllText(FilePaths.ShiftsRepoPath, csvHeader);
+            File.WriteAllText(LocalStorage.ShiftsRepoPath, csvHeader);
 
         }
         
@@ -94,7 +91,7 @@ public partial class ShiftServices
 
         try
         {
-            File.AppendAllText(FilePaths.ShiftsRepoPath, csvLine);
+            File.AppendAllText(LocalStorage.ShiftsRepoPath, csvLine);
         }
         catch (Exception ex)
         {
@@ -112,7 +109,7 @@ public partial class ShiftServices
         {
             var appStateAt = new AppState(shift.EndOdometer, now);
             string appStateJson = JsonSerializer.Serialize<AppState>(appStateAt);
-            File.WriteAllText(FilePaths.AppStatePath, appStateJson);
+            File.WriteAllText(LocalStorage.AppStatePath, appStateJson);
         }
         catch (Exception ex)
         {
@@ -121,12 +118,11 @@ public partial class ShiftServices
 
         Console.WriteLine("last_odometer.json atualizado com sucesso");
 
-        File.Delete(FilePaths.OpenedShiftPath);
+        File.Delete(LocalStorage.OpenedShiftPath);
         Console.WriteLine("opened_shift.json deletado com sucesso.");
         
         return;
 
     }
-    public record OpenedShift(DateTime StartDateTime, int StartOdometer);
-    public record AppState(int Odometer, DateTime DateTime);
-}
+    
+}*/

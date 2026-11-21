@@ -13,4 +13,8 @@
     <None Remove="Helpers\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="Common\InputHelpers.cs" />
+  </ItemGroup>
+
 </Project>

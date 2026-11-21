@@ -1,7 +1,6 @@
-﻿using System;
-using RoadProfitApp;
+﻿using RoadProfitApp;
 
-namespace RoadProfitApp.CLI.Models;
+namespace RoadProfitApp.CLI.Domain;
 
 public class WorkShift
 {

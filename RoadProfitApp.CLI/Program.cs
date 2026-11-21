@@ -1,5 +1,6 @@
-﻿using System;
-using RoadProfitApp.CLI.Services;
+﻿using RoadProfitApp.CLI.Application;
+using RoadProfitApp.CLI.Infrastructure;
+using RoadProfitApp.CLI.Common;
 
 namespace RoadProfitApp.CLI;
 
@@ -7,23 +8,51 @@ public class Program
 {
     public static void Main(string[] args)
     {
+        var logger = new FileLogger();
+        var repo = new LocalStorage(logger);
+        var shiftService = new ShiftServices(repo);
 
-        Console.WriteLine("===========RoadProfit=============");
-        Console.WriteLine("1- Abrir turno");
-        Console.WriteLine("2- Encerrar turno");
-        Console.WriteLine("3- Registrar abastecimento");
-        Console.WriteLine("4- Registrar manutenção");
-        Console.Write("\nInforme a opção: ");
-        string? option = Console.ReadLine();
+        WriteLine("===========RoadProfit=============");
+        WriteLine("1- Abrir turno");
+        WriteLine("2- Encerrar turno");
+        WriteLine("3- Registrar abastecimento");
+        WriteLine("4- Registrar manutenção");
+        Write("\nInforme a opção: ");
+        string option = ReadLine()?.Trim() ?? string.Empty;
 
         switch (option)
         {
-            case "1":
-                ShiftServices.OpenShift();
-                return;
+            case "1"
 
+                var startOdometer = GetValidInt("Informe o odometro Atual.");
+
+                var retroResult = GetTimeStamp();
+                if (retroResult.IsFail) { WriteLine(retroResult.Error.Message); break; }
+                var startTime = retroResult.Value;
+
+                var request = new OpenShiftRequest(startOdometer, startTime);
+                while (true)
+                {
+                    var response = shiftService.OpenShift(request);
+                    if (response is FailureResponse) { WriteLine(response.Message); break; } 
+
+                    if (response is WarningResponse)
+                    {
+                        WriteLine(response.Message);
+                        request = request with { ConfirmWarnings = true };
+                        continue; 
+                    }
+                    WriteLine(response.Message);
+                    break;
+
+                }
+
+        }
+    }
+}
+/*
             case "2":
-                ShiftServices.CloseShift();
+                shiftService.CloseShift();
                 return;
         }
 
