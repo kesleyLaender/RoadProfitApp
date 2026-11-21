@@ -88,7 +88,7 @@ public class LocalStorage(FileLogger logger)
         try
         {
             string line = JsonSerializer.Serialize(obj);
-            File.AppendAllText(path, line);
+            File.AppendAllText(path, line + Environment.NewLine);
             return Result.Ok();
         }
         catch (Exception ex) when (ex is JsonException or NotSupportedException)
