@@ -17,6 +17,9 @@ public class ShiftServices(LocalStorage repo)
         if (occurredAtResult.IsFailed)
             return occurredAtResult;
 
+        if (HasAppState() is false)
+            return Result.Fail(Confirm("Não foi possível encontrar o cache de estado."));
+
         var stateResult = repo.GetState();
         if (stateResult.IsFailed)
             return stateResult;
