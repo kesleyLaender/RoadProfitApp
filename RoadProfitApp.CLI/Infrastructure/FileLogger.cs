@@ -1,9 +1,6 @@
-﻿using System.Text.Json.Serialization;
-
-namespace RoadProfitApp.CLI.Common;
-public class FileLogger(string? logFilePath = null)
+﻿namespace RoadProfitApp.CLI.Infrastructure;
+public class FileLogger(AppPaths paths)
 {
-    private readonly string _logFilePath = logFilePath ?? AppPaths.LogFilePath;
     private readonly JsonSerializerOptions _jsonOptions = new()
     {
         WriteIndented = false,
@@ -32,7 +29,7 @@ public class FileLogger(string? logFilePath = null)
             };
 
             string line = JsonSerializer.Serialize(entry, _jsonOptions);
-            File.AppendAllText(_logFilePath, line + Environment.NewLine);
+            File.AppendAllText(paths.LogFilePath, line + Environment.NewLine);
         }
         catch { }
     }

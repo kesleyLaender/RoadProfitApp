@@ -73,7 +73,7 @@ public abstract record Error(string Message)
     public static Operational Operational(string message)
         => new (message);
 
-    public static Confirmation Confirm(string message)
+    public static Confirmation Confirmation(string message)
         => new (message);
 
     public static Validation Validation(string message)

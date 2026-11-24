@@ -33,7 +33,7 @@ public class Program
                 var request = new OpenShiftRequest(startOdometer, startTime);
                 while (true)
                 {
-                    var response = shiftService.OpenShift(request);
+                    var response = shiftService.Open(request);
                     if (response is FailureResponse) { WriteLine(response.Message); break; } 
 
                     if (response is WarningResponse)

@@ -1,6 +1,6 @@
 ﻿using RoadProfitApp.CLI.Domain;
 using RoadProfitApp.CLI.Infrastructure;
-   namespace RoadProfitApp.CLI.Application;
+namespace RoadProfitApp.CLI.Application;
 /*
 public partial class ShiftServices
 {

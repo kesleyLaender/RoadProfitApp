@@ -2,31 +2,38 @@
 
 public static class DomainPolicies
 {
-    public static Result ValidateOdometer(AppState state, int startOdometer, bool force)
+    public static Result ValidateOdometer(int lastKnownOdometer, int currentOdometer, bool isConfirmed)
     {
-        if (startOdometer < state.LastKnownOdometer)
-            return Result.Fail(Validation(
-                $"Odometro inputado é menor que o ultimo conhecido {state.LastKnownOdometer}"));
+        const int MaxOdometerJump = 200;
 
-        int deltaOdometer = startOdometer - state.LastKnownOdometer;
-        if (deltaOdometer > 200 && force is false)
-            return Result.Fail(Confirm(
-                $"Salto suspeito do odometro em relação ao ultimo registrado {state.LastKnownOdometer}"));
+        if (currentOdometer < lastKnownOdometer)
+            return Result.Fail(Validation(
+                $"Odometro informado é menor que o ultimo conhecido {lastKnownOdometer}"));
+
+        int odometerJump = currentOdometer - lastKnownOdometer;
+
+        if (odometerJump > MaxOdometerJump && isConfirmed is false)
+            return Result.Fail(Confirmation(
+                $"Salto suspeito de {odometerJump} km no odometro em relação ao ultimo registrado {lastKnownOdometer}"));
 
         return Result.Ok();
     }
 
-    public static Result<DateTime> ResolveOccurredAt(int minutesPassed, DateTime registeredAt, bool force = false)
+    public static Result<DateTime> ResolveEventTime(int minutesAgo, DateTime now, bool isConfirmed)
     {
-        if (minutesPassed < 0)
-            return Result.Fail(Validation("Minutos não podem ser negativos."));
+        const int MaxRetroactiveMinutes = 60;
 
-        if (minutesPassed is 0)
-            return Result.Ok(registeredAt);
+        if (minutesAgo < 0)
+            return Result.Fail(Validation(
+                "Minutos não podem ser negativos."));
 
-        if (minutesPassed > 60 && force is false)
-            return Result.Fail(Confirm($"Tempo retroativo suspeito {minutesPassed}"));
+        if (minutesAgo is 0)
+            return Result.Ok(now);
+
+        if (minutesAgo > MaxRetroactiveMinutes && isConfirmed is false)
+            return Result.Fail(Confirmation(
+                $"Tempo retroativo suspeito {minutesAgo}"));
         
-        return Result.Ok(registeredAt.AddMinutes(-minutesPassed));
+        return Result.Ok(now.AddMinutes(-minutesAgo));
     }
 }

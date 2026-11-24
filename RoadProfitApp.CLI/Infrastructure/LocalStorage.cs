@@ -3,32 +3,44 @@ using System.Runtime.CompilerServices;
 
 namespace RoadProfitApp.CLI.Infrastructure;
 
-public class LocalStorage(FileLogger logger)
+public class LocalStorage(AppPaths paths, FileLogger logger)
 {
-    private static readonly string BaseDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "RoadProfitData");
-    private static readonly string ActiveShiftPath = Path.Combine(BaseDataDir, "active_shift.json");
-    private static readonly string AppStatePath = Path.Combine(BaseDataDir, "state.json");
-    private static readonly string ShiftsPath = Path.Combine(BaseDataDir, "shifts.jsonl");
+    private readonly JsonSerializerOptions _writeOptions = new()
+    { WriteIndented = true };
 
     public bool HasActiveShift() 
-        => File.Exists(AppPaths.ActiveShiftPath);
-    
+        => File.Exists(paths.ActiveShiftPath);
+
     public bool HasAppState()
-        => File.Exists(AppPaths.AppStatePath)
+        => File.Exists(paths.AppStatePath);
 
     public Result<AppState> GetState()
-        => LoadJson<AppState>(AppPaths.AppStatePath);
+        => LoadJson<AppState>(paths.AppStatePath);
 
-    public Result UpdateState(AppState state)
-        => WriteJson<AppState>(AppPaths.BaseDataDir, AppPaths.AppStatePath, state);
+    public Result Save(AppState state)
+        => WriteJsonAtomic<AppState>(paths.BaseDataDir, paths.AppStatePath, state);
 
-    public Result SaveActiveShift(ActiveShift shift)
-        => WriteJson<ActiveShift>(AppPaths.BaseDataDir, AppPaths.ActiveShiftPath, shift);
+    public Result Save(ActiveShift shift)
+        => WriteJsonAtomic<ActiveShift>(paths.BaseDataDir, paths.ActiveShiftPath, shift);
 
     public Result<ActiveShift> GetActiveShift()
-        => LoadJson<ActiveShift>(AppPaths.ActiveShiftPath);
+        => LoadJson<ActiveShift>(paths.ActiveShiftPath);
 
+    public Result Save(WorkShift shift)
+        => AppendJsonLine<WorkShift>(paths.ShiftsPath, shift);
 
+    public Result DeleteActiveShift()
+    {
+        try
+        {
+            File.Delete(paths.ActiveShiftPath);
+            return Result.Ok(); 
+        }
+        catch (IOException ex)
+        {
+            return Result.Fail(Operational(ex.Message));
+        }
+    }
     // Leitor genérico Json temporario
     private Result<T> LoadJson<T>(string path, [CallerMemberName] string context = "")
     {
@@ -56,12 +68,12 @@ public class LocalStorage(FileLogger logger)
     }
 
     // Escritor generico Json temporario
-    private Result WriteJson<T>(string baseDirectory, string path, T obj, [CallerMemberName] string context = "")
+    private Result WriteJsonAtomic<T>(string baseDirectory, string path, T obj, [CallerMemberName] string context = "")
     {
         string fileTemp = Path.Combine(baseDirectory, Path.GetRandomFileName());
         try
         {
-            string jsonString = JsonSerializer.Serialize(obj);
+            string jsonString = JsonSerializer.Serialize(obj, _writeOptions);
             File.WriteAllText(fileTemp, jsonString);
             File.Move(fileTemp, path, overwrite: true);
 
@@ -81,7 +93,7 @@ public class LocalStorage(FileLogger logger)
         finally { File.Delete(fileTemp); }
     }
 
-    private Result AppendJsonl<T>(string path, T obj, [CallerMemberName] string context = "")
+    private Result AppendJsonLine<T>(string path, T obj, [CallerMemberName] string context = "")
     {
 
         try
