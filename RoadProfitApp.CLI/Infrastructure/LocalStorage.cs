@@ -1,4 +1,4 @@
-﻿using RoadProfitApp.CLI.Domain;
+using RoadProfitApp.CLI.Domain;
 using System.Runtime.CompilerServices;
 
 namespace RoadProfitApp.CLI.Infrastructure;
@@ -47,6 +47,12 @@ public class LocalStorage(AppPaths paths, FileLogger logger)
         string jsonString = string.Empty;
         try
         {
+<<<<<<< HEAD
+            if (!File.Exists(path))
+                return Result.Ok(null);
+
+=======
+>>>>>>> b8629dfc4b5771822a7007a0218af22e4a9d18b3
             jsonString = File.ReadAllText(path);
             T? obj = JsonSerializer.Deserialize<T>(jsonString);
 

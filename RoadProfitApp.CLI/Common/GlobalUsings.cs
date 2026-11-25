@@ -11,5 +11,4 @@ global using RoadProfitApp.CLI.Common;
 global using static RoadProfitApp.CLI.Infrastructure.FileLogger;
 global using static System.Globalization.CultureInfo;
 global using static System.Console;
-global using static RoadProfitApp.CLI.Common.Error;
-global using static RoadProfitApp.CLI.Common.Response;
+global using static RoadProfitApp.CLI.Common.ErrorType;
