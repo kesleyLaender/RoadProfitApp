@@ -10,6 +10,7 @@ public readonly record struct ErrorOr<TValue>
 
     public bool IsSuccess { get; }
     public bool IsFail => !IsSuccess;
+    public IReadOnlyList<string?> Warnings = null;
 
     private ErrorOr(TValue value)
     {
@@ -99,5 +100,10 @@ public enum ErrorType
     NotFound,
     Warning,
     Confirmation
+}
+
+public static class Result
+{
+    public Success Success => default;
 }
 

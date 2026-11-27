@@ -14,8 +14,8 @@ public class LocalStorage(AppPaths paths, FileLogger logger)
     public Result<AppState> GetState()
         => LoadJson<AppState>(paths.AppStatePath);
 
-    public Result Save(AppState state)
-        => WriteJsonAtomic<AppState>(paths.BaseDataDir, paths.AppStatePath, state);
+    public Result Save(AppState stateResult)
+        => WriteJsonAtomic<AppState>(paths.BaseDataDir, paths.AppStatePath, stateResult);
 
     public Result Save(ActiveShift shift)
         => WriteJsonAtomic<ActiveShift>(paths.BaseDataDir, paths.ActiveShiftPath, shift);
@@ -31,27 +31,22 @@ public class LocalStorage(AppPaths paths, FileLogger logger)
         try
         {
             File.Delete(paths.ActiveShiftPath);
-            return new Success; 
+            return Result.Success; 
         }
         catch (IOException ex)
         { return Error.Operational(ex.Message); }
     }
 
-    public ErrorOr<int?> GetLastKnownOdometer(bool isConfirmed)
+    public ErrorOr<int> GetLastKnownOdometer(int currentOdometer)
     {
-        if(File.Exists(paths.AppStatePath))
-        {
-            var state = LoadJson(paths.AppStatePath);
-            if(state.IsFail)
-                return state.Error;
+        if(File.Exists(paths.AppStatePath) is false)
+            return currentOdometer;
 
-            return state.Value.LastKnownOdometer;
-        }
+        var stateResult = LoadJson(paths.AppStatePath);
+        if (stateResult.IsFail)
+            return stateResult.Error;
 
-        if(isConfirmed is false)
-            return Error.NotFound("Cache de estado não encontrado.");
-
-        return (int?)null
+        return stateResult.Value.LastKnownOdometer;
     }
 
     // Leitor genérico Json temporario
@@ -88,7 +83,7 @@ public class LocalStorage(AppPaths paths, FileLogger logger)
             File.WriteAllText(fileTemp, jsonString);
             File.Move(fileTemp, path, overwrite: true);
 
-            return new Success;
+            return Result.Success;
         }
         catch (Exception ex) when (ex is JsonException or NotSupportedException)
         {
@@ -109,7 +104,7 @@ public class LocalStorage(AppPaths paths, FileLogger logger)
         {
             string line = JsonSerializer.Serialize(obj);
             File.AppendAllText(path, line + Environment.NewLine);
-            return new Success;
+            return Result.Success;
         }
         catch (Exception ex) when (ex is JsonException or NotSupportedException)
         {

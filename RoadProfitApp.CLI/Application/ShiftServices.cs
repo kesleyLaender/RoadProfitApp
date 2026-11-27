@@ -10,25 +10,21 @@ public class ShiftServices(LocalStorage repo)
             return Error.Operational(
                 "Já existe um turno em aberto!");
 
-        if (repo.HasAppState() is false && request.IsConfirmed is false)
-            return Error.Fail(Confirmation(
-                "Não foi possível encontrar o cache de estado."));
-
-        var stateResult = repo.GetState();
-        if (stateResult.IsFailed)
-            return stateResult;
+        var odometerResult = repo.GetLastKnownOdometer(request.StartOdometer);
+        if (odometerResult.IsFail)
+            return odometerResult.Error;
 
         var odometerValidation = DomainPolicies.ValidateOdometer(
-            stateResult.GetValue().LastKnownOdometer,
+            odometerResult.Value,
             request.StartOdometer,
             request.IsConfirmed);
 
-        if(odometerValidation.IsFailed)
+        if (odometerValidation.IsFailed)
             return odometerValidation;
 
         var shift = new ActiveShift(
             request.OccurredAt,
-            request.StartOdometer);
+            odometerResult.Value);
 
         var saveResult = repo.Save(shift);
 
@@ -42,11 +38,11 @@ public class ShiftServices(LocalStorage repo)
         var updateResult = repo.Save(newState);
 
         if(updateResult.IsFailed)
-            return Error.Fail(Warning(
+            return Error.Warning(
                 "Turno aberto e salvo, mas estado não pôde ser atualizado",
-                updateResult.GetError().Message));
+                updateResult.Error.Message);
 
-        return Error.Ok();
+        return Result.Success;
 
     }
 
