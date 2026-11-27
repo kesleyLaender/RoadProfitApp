@@ -39,14 +39,19 @@ public class LocalStorage(AppPaths paths, FileLogger logger)
 
     public ErrorOr<int?> GetLastKnownOdometer(bool isConfirmed)
     {
-        if(File.Exists(paths.AppStatePath) is false && isConfirmed is false)
-            return (int)null
+        if(File.Exists(paths.AppStatePath))
+        {
+            var state = LoadJson(paths.AppStatePath);
+            if(state.IsFail)
+                return state.Error;
 
-        var state = LoadJson(paths.AppStatePath);
-        if(state.IsFail)
-            return state.Error;
+            return state.Value.LastKnownOdometer;
+        }
 
-        return state.Value.LastKnownOdometer;
+        if(isConfirmed is false)
+            return Error.NotFound("Cache de estado não encontrado.");
+
+        return (int?)null
     }
 
     // Leitor genérico Json temporario
