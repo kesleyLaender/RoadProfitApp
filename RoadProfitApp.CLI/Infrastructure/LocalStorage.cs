@@ -11,9 +11,6 @@ public class LocalStorage(AppPaths paths, FileLogger logger)
     public bool HasActiveShift() 
         => File.Exists(paths.ActiveShiftPath);
 
-    public bool HasAppState()
-        => File.Exists(paths.AppStatePath);
-
     public Result<AppState> GetState()
         => LoadJson<AppState>(paths.AppStatePath);
 
@@ -29,52 +26,55 @@ public class LocalStorage(AppPaths paths, FileLogger logger)
     public Result Save(WorkShift shift)
         => AppendJsonLine<WorkShift>(paths.ShiftsPath, shift);
 
-    public Result DeleteActiveShift()
+    public ErrorOr<Success> DeleteActiveShift()
     {
         try
         {
             File.Delete(paths.ActiveShiftPath);
-            return Result.Ok(); 
+            return new Success; 
         }
         catch (IOException ex)
-        {
-            return Result.Fail(Operational(ex.Message));
-        }
+        { return Error.Operational(ex.Message); }
     }
+
+    public ErrorOr<int?> GetLastKnownOdometer(bool isConfirmed)
+    {
+        if(File.Exists(paths.AppStatePath) is false && isConfirmed is false)
+            return (int)null
+
+        var state = LoadJson(paths.AppStatePath);
+        if(state.IsFail)
+            return state.Error;
+
+        return state.Value.LastKnownOdometer;
+    }
+
     // Leitor genérico Json temporario
-    private Result<T> LoadJson<T>(string path, [CallerMemberName] string context = "")
+    private ErrorOr<TValue> LoadJson<TValue>(string path, [CallerMemberName] string context = "")
     {
         string jsonString = string.Empty;
         try
         {
-<<<<<<< HEAD
-            if (!File.Exists(path))
-                return Result.Ok(null);
-
-=======
->>>>>>> b8629dfc4b5771822a7007a0218af22e4a9d18b3
             jsonString = File.ReadAllText(path);
             T? obj = JsonSerializer.Deserialize<T>(jsonString);
 
             return obj is null
                 ? throw new JsonException(
                     "O Arquivo JSON foi lido com sucesso, mas o conteudo desserializado resultou em nulo.")
-                : Result.Ok(obj);
+                : obj;
         }
         catch (IOException ex)
-            { return Result.Fail(
-                Operational(ex.Message)); }
+            { return Error.Operational(ex.Message); }
 
         catch (JsonException ex) 
         {
             logger.LogError(context, ex, jsonString);
-            return Result.Fail(
-                Critical(ex.Message)); 
+            return Error.Critical(ex.Message); 
         }
     }
 
     // Escritor generico Json temporario
-    private Result WriteJsonAtomic<T>(string baseDirectory, string path, T obj, [CallerMemberName] string context = "")
+    private ErrorOr<Success> WriteJsonAtomic<TValue>(string baseDirectory, string path, TValue obj, [CallerMemberName] string context = "")
     {
         string fileTemp = Path.Combine(baseDirectory, Path.GetRandomFileName());
         try
@@ -83,42 +83,36 @@ public class LocalStorage(AppPaths paths, FileLogger logger)
             File.WriteAllText(fileTemp, jsonString);
             File.Move(fileTemp, path, overwrite: true);
 
-            return Result.Ok();
+            return new Success;
         }
         catch (Exception ex) when (ex is JsonException or NotSupportedException)
         {
             logger.LogError(context, ex, obj);
-            return Result.Fail(
-                Critical(ex.Message)); 
+            return Error.Critical(ex.Message); 
         }
 
         catch (IOException ex)
-            { return Result.Fail(
-                Operational(ex.Message)); }
+            { return Error.Operational(ex.Message); }
 
         finally { File.Delete(fileTemp); }
     }
 
-    private Result AppendJsonLine<T>(string path, T obj, [CallerMemberName] string context = "")
+    private ErrorOr<Success> AppendJsonLine<TValue>(string path, TValue obj, [CallerMemberName] string context = "")
     {
 
         try
         {
             string line = JsonSerializer.Serialize(obj);
             File.AppendAllText(path, line + Environment.NewLine);
-            return Result.Ok();
+            return new Success;
         }
         catch (Exception ex) when (ex is JsonException or NotSupportedException)
         {
             logger.LogError(context, ex, obj);
-            return Result.Fail(
-                Critical(ex.Message));
+            return Error.Critical(ex.Message);
         }
         catch (IOException ex)
-        {
-            return Result.Fail(
-                Operational(ex.Message));
-        }
+        { return Error.Operational(ex.Message); }
     }
 }
 

@@ -4,14 +4,14 @@ namespace RoadProfitApp.CLI.Application;
 
 public class ShiftServices(LocalStorage repo)
 {
-    public Result Open(OpenShiftRequest request)
+    public Error Open(OpenShiftRequest request)
     {
         if (repo.HasActiveShift())
-            return Result.Fail(Operational(
-                "Já existe um turno em aberto!"));
+            return Error.Operational(
+                "Já existe um turno em aberto!");
 
         if (repo.HasAppState() is false && request.IsConfirmed is false)
-            return Result.Fail(Confirmation(
+            return Error.Fail(Confirmation(
                 "Não foi possível encontrar o cache de estado."));
 
         var stateResult = repo.GetState();
@@ -42,23 +42,23 @@ public class ShiftServices(LocalStorage repo)
         var updateResult = repo.Save(newState);
 
         if(updateResult.IsFailed)
-            return Result.Fail(Warning(
+            return Error.Fail(Warning(
                 "Turno aberto e salvo, mas estado não pôde ser atualizado",
                 updateResult.GetError().Message));
 
-        return Result.Ok();
+        return Error.Ok();
 
     }
 
 
-    public Result Close(CloseShiftRequest request)
+    public Error Close(CloseShiftRequest request)
     {
         if (repo.HasActiveShift() is false)
-            return Result.Fail(Operational(
+            return Error.Fail(Operational(
                 "Não existe um turno ativo para fechar."));
 
         if (repo.HasAppState() is false && request.IsConfirmed is false)
-            return Result.Fail(Confirmation(
+            return Error.Fail(Confirmation(
                 "Arquivo de estado não encontrado."));
 
         var stateResult = repo.GetState();
@@ -94,17 +94,17 @@ public class ShiftServices(LocalStorage repo)
 
         var updateResult = repo.Save(newState);
         if (updateResult.IsFailed)
-            return Result.Fail(Warning(
+            return Error.Fail(Warning(
                 "Falha ao atualizar estado.",
                 updateResult.GetError().Message));
 
         var deleteResult = repo.DeleteActiveShift();
 
         if (deleteResult.IsFailed)
-            return Result.Fail(Warning(
+            return Error.Fail(Warning(
                 "Falha ao deletar turno ativo.",
                 deleteResult.GetError().Message));
 
-        return Result.Ok();
+        return Error.Ok();
     }
 }

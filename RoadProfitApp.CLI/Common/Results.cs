@@ -82,12 +82,19 @@ public readonly record struct Error(
     public static Error NotFound(string message)
         => new (ErrorType.NotFound, message);
 
+    public static Error Operational(string message)
+        => new (ErrorType.Operational, message); 
+
+    public static Error Critical(string message)
+        => new (ErrorType.Critical, string message);       
+
     
 }
 
 public enum ErrorType
 {
-    Failure,
+    Operational,
+    Critical,
     Validation,
     NotFound,
     Warning,
